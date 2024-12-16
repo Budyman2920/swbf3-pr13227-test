@@ -134,9 +134,10 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
   else
   {
     // One shared matrix
-    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[0];\n"
-              "\tresult[1] = " I_POSNORMALMATRIX "[1];\n"
-              "\tresult[2] = " I_POSNORMALMATRIX "[2];\n");
+    out.Write("\tint posidx = int(" I_CACHED_POSMTXIDX ".r);\n"
+              "\tresult[0] = " I_TRANSFORMMATRICES "[posidx];\n"
+              "\tresult[1] = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+              "\tresult[2] = " I_TRANSFORMMATRICES "[posidx + 2];\n");
   }
   out.Write("\treturn result;\n");
   out.Write("}}\n\n");
@@ -166,9 +167,11 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
   else
   {
     // One shared matrix
-    out.Write("\tresult[0] = " I_POSNORMALMATRIX "[3].xyz;\n"
-              "\tresult[1] = " I_POSNORMALMATRIX "[4].xyz;\n"
-              "\tresult[2] = " I_POSNORMALMATRIX "[5].xyz;\n");
+    out.Write("\tint posidx = int(" I_CACHED_POSMTXIDX ".r);\n"
+              "\tint normidx = posidx & 31;\n"
+              "\tresult[0] = " I_NORMALMATRICES "[normidx].xyz;\n"
+              "\tresult[1] = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+              "\tresult[2] = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
   }
   out.Write("\treturn result;\n");
   out.Write("}}\n\n");
@@ -632,7 +635,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("\tvertex_input.binormal = " I_CACHED_BINORMAL ".xyz;\n");
   }
-
   if ((uid_data->components & VB_HAS_TANGENT) != 0)
   {
     out.Write("\tvertex_input.tangent = rawtangent;\n");
