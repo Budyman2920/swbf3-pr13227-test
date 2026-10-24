@@ -254,9 +254,29 @@ static bool CheckKgslPresent()
   return access(KgslPath, F_OK) == 0;
 }
 
+static bool CheckMaliPresent()
+{
+  constexpr const char* const MaliLibraryPaths[] = {
+      "/system/vendor/lib/egl/libGLES_mali.so",
+      "/system/vendor/lib64/egl/libGLES_mali.so",
+      "/system/lib/egl/libGLES_mali.so",
+      "/system/lib64/egl/libGLES_mali.so",
+  };
+
+  for (const char* path : MaliLibraryPaths)
+  {
+    if (access(path, F_OK) == 0)
+      return true;
+  }
+
+  return false;
+}
+
 bool SupportsCustomDriver()
 {
-  return android_get_device_api_level() >= 28 && CheckKgslPresent();
+  // Adreno uses KGSL, while Mali exposes its EGL implementation as libGLES_mali.so.
+  // Both should be allowed to show the custom driver install menu on Android 9+.
+  return android_get_device_api_level() >= 28 && (CheckKgslPresent() || CheckMaliPresent());
 }
 #endif
 
